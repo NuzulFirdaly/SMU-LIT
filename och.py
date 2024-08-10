@@ -4,7 +4,7 @@ from PIL import Image
 from transformers import pipeline
 from transformers import ViltProcessor, ViltModel
 from torchvision import transforms
-
+import pandas as pd
 # Load the processor and model
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-mlm")
 model = ViltModel.from_pretrained("dandelin/vilt-b32-mlm")
@@ -12,14 +12,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 
 #for text input only
-classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli",device='cuda')
 
 categories = [
-    "Safe content that does not contain harmful or inappropriate elements.",
-    "harassment involving insults and threats",
-    "Explicit sexual content including nudity, pornography, or sexually suggestive language.",
-    "Content that incites or provokes hatred, violence, or discrimination based on race, religion, or ethnicity.",
-    "Content depicting physical violence, threats, or promotion of violent behavior.",
+    "safe",
+    "harassment",
+    "sexual",
+    "racism",
+    "violence.",
 ]
 
 # Function to classify text into categories
@@ -50,17 +50,29 @@ def classify_image_and_text(text, image_path):
 
     return {"best_category": best_category, "probs": probs}
 
-text = "lol"
+file_path = "C:/Users/firda/Documents/UiPath/Scrape Forum/Comments2.xlsx"
 
-# # Example with both text and image
-image_path = "./1950306.jpg"
+df = pd.read_excel(file_path)
+print("read excel")
+# Ensure that the 'Output' column exists
+# if 'Output' not in df.columns:
+#     df['Output'] = pd.NA  # Initialize the Output column if it does not exist
+df = df.dropna(how='all')
 
-if image_path:
-    result = classify_image_and_text(text, image_path)
-    print(f"Detected category with image: {result['best_category']}")
-    print(f"Probabilities with image: {result['probs']}")
-else:
-    result = classify_text(text)
+# Process each row (starting from index 1 to skip header row)
+for index, row in df.iterrows():
+    print("iterating")
+    if index == 0:
+        continue  # Skip header row
+    
+    # Check if the output column is empty or NaN (indicating that it hasn't been processed)
+    if pd.isna(row['Output']):
+        text = row[0]
+        if text:  # Assuming the first column contains the text
+        # Replace 'path/to/your/image.jpg' with the actual image path or modify as needed
+        # Run the AI model on the text in the first column and save the result
+            output = classify_text(text)
+            print(f"{text}| {output['best_category']}\n")
 
-    print(f"Detected category without image: {result['best_category']}")
-    print(f"Probabilities without image: {result['probs']}")
+            df.at[index, 'Output'] = output['best_category']
+            df.to_excel(file_path, index=False)
