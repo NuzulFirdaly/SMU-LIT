@@ -13,7 +13,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 #for text input only
-classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli",device='cuda')
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 categories = [
     "safe",
@@ -23,7 +23,9 @@ categories = [
     "violence.",
 ]
 
-# def classify_image_and_text(text, image_path):
+def classify_text(text):
+    result = classifier(text, candidate_labels=categories)
+    return {"best_category": result['labels'][0], "probs": result['scores']}
 #     # Load and process the image and text
 #     image = Image.open(image_path)
 #     inputs = processor(text=[text], images=image, return_tensors="pt", padding=True)
