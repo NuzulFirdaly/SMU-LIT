@@ -23,15 +23,6 @@ categories = [
     "violence.",
 ]
 
-# Function to classify text into categories
-def classify_text(text):
-    print("classifying text")
-    #for text input only
-    prompt = create_prompt(text)
-    messages = [
-        {"role": "user", "content": prompt},
-    ]
-    return pipe(messages)
 # def classify_image_and_text(text, image_path):
 #     # Load and process the image and text
 #     image = Image.open(image_path)
